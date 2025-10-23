@@ -19,7 +19,7 @@ public class SimulacionService
     {
         try
         {
-            _logger.LogInformation("Iniciando simulación con semilla: {Semilla}", config.Semilla);
+            _logger.LogInformation("Iniciando simulacion con semilla: {Semilla}", config.Semilla);
 
             var resultado = await Task.Run(() => SimularPeluqueria(config));
 
@@ -39,13 +39,13 @@ public class SimulacionService
             _context.HistorialSimulaciones.Add(historial);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Simulación completada y guardada con ID: {Id}", historial.Id);
+            _logger.LogInformation("Simulacion completada y guardada con ID: {Id}", historial.Id);
 
             return resultado;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al ejecutar simulación");
+            _logger.LogError(ex, "Error al ejecutar simulacion");
             throw;
         }
     }
@@ -56,10 +56,8 @@ public class SimulacionService
         var eventos = new List<EventoSimulacion>();
         var tiempoActual = 0.0;
 
-        // 1. Generar llegadas de clientes
         var llegadas = GenerarLlegadasClientes(config, random);
 
-        // Agregar eventos de llegada
         foreach (var llegada in llegadas)
         {
             eventos.Add(new EventoSimulacion
@@ -70,14 +68,12 @@ public class SimulacionService
             });
         }
 
-        // 2. Simular proceso de atención
         var cola = new Queue<Cliente>();
         var peluquerosLibres = config.NumPeluqueros;
         var clientesAtendidos = 0;
 
         while (clientesAtendidos < config.TotClientes)
         {
-            // Procesar llegadas en tiempo actual
             var llegadasAhora = llegadas.Where(l => l.TiempoLlegada <= tiempoActual && !l.Atendido).ToList();
             foreach (var cliente in llegadasAhora)
             {
@@ -85,13 +81,11 @@ public class SimulacionService
                 cliente.EnCola = true;
             }
 
-            // Atender clientes si hay peluqueros disponibles
             while (peluquerosLibres > 0 && cola.Count > 0)
             {
                 var cliente = cola.Dequeue();
                 var tiempoEspera = tiempoActual - cliente.TiempoLlegada;
 
-                // Evento de inicio de corte
                 eventos.Add(new EventoSimulacion
                 {
                     Cliente = cliente.Nombre,
@@ -100,10 +94,8 @@ public class SimulacionService
                     TiempoEspera = tiempoEspera
                 });
 
-                // Generar tiempo de corte
                 var tiempoCorte = GenerarTiempoCorte(config, random);
 
-                // Evento de fin de corte
                 var tiempoFinCorte = tiempoActual + tiempoCorte;
                 eventos.Add(new EventoSimulacion
                 {
@@ -118,7 +110,6 @@ public class SimulacionService
                 clientesAtendidos++;
             }
 
-            // Encontrar próximo evento
             var proximoEvento = eventos
                 .Where(e => e.Tiempo > tiempoActual)
                 .OrderBy(e => e.Tiempo)
@@ -128,7 +119,6 @@ public class SimulacionService
             {
                 tiempoActual = proximoEvento.Tiempo;
 
-                // Si es fin de corte, liberar peluquero
                 if (proximoEvento.TipoEvento == "Fin Corte")
                 {
                     peluquerosLibres++;
@@ -136,7 +126,6 @@ public class SimulacionService
             }
             else if (clientesAtendidos < config.TotClientes)
             {
-                // Avanzar al próximo cliente si no hay eventos pero faltan clientes
                 var proximaLlegada = llegadas.FirstOrDefault(l => !l.Atendido);
                 if (proximaLlegada != null)
                 {
@@ -153,7 +142,6 @@ public class SimulacionService
             }
         }
 
-        // Calcular indicadores
         var indicadores = CalcularIndicadores(eventos, config, tiempoActual);
 
         return new ResultadoSimulacion
