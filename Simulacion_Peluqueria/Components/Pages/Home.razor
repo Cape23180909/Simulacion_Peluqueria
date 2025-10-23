@@ -3,15 +3,15 @@
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
-<PageTitle>Simulación de Peluquería</PageTitle>
+<PageTitle>Simulacion de Peluqueria</PageTitle>
 
 <div class="container mt-4">
-    <h1 class="text-center mb-4">Simulación de Peluquería</h1>
+    <h1 class="text-center mb-4">Simulacion de Peluqueria</h1>
 
    @*  Campos para Iniciar Simulacion *@
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Configuración de la Simulación</h5>
+            <h5 class="mb-0">Configuracion de la Simulacion</h5>
         </div>
         <div class="card-body">
             <div class="row">
@@ -24,11 +24,11 @@
                     <input @bind="config.NumPeluqueros" class="form-control" type="number" />
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Corte Mín (min):</label>
+                    <label class="form-label">Corte Min (min):</label>
                     <input @bind="config.TiempoCorteMin" class="form-control" type="number" />
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Corte Máx (min):</label>
+                    <label class="form-label">Corte Max (min):</label>
                     <input @bind="config.TiempoCorteMax" class="form-control" type="number" />
                 </div>
                 <div class="col-md-2">
@@ -65,7 +65,7 @@
     {
         <div class="card mb-4">
             <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Resultados de la Simulación</h5>
+                <h5 class="mb-0">Resultados de la Simulacion</h5>
             </div>
             <div class="card-body">
                 <div class="row">
@@ -88,7 +88,7 @@
                     <div class="col-md-4">
                         <div class="card text-white bg-primary mb-3">
                             <div class="card-body text-center">
-                                <h6 class="card-title">Uso Promedio Instalación</h6>
+                                <h6 class="card-title">Uso Promedio Instalacion</h6>
                                 <p class="card-text h4">@(resultado.Indicadores.UsoPromedioInstalacion.ToString("F2"))</p>
                             </div>
                         </div>
