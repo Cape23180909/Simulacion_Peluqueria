@@ -12,7 +12,6 @@ public class HistorialSimulacion
     public double TiempoEsperaPromedio { get; set; }
     public double UsoPromedioInstalacion { get; set; }
 
-    // Relaciones
     public int ConfiguracionId { get; set; }
     public Configuracion Configuracion { get; set; } = null!;
 
