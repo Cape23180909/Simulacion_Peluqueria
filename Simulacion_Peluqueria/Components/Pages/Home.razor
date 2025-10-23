@@ -1,0 +1,204 @@
+﻿@page "/"
+@using Simulacion_Peluqueria.Services
+@inject SimulacionService SimulacionService
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Simulación de Peluquería</PageTitle>
+
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Simulación de Peluquería</h1>
+
+    <!-- Panel de Configuración -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Configuración de la Simulación</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <label class="form-label">Semilla:</label>
+                    <input @bind="config.Semilla" class="form-control" type="number" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Peluqueros:</label>
+                    <input @bind="config.NumPeluqueros" class="form-control" type="number" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Corte Mín (min):</label>
+                    <input @bind="config.TiempoCorteMin" class="form-control" type="number" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Corte Máx (min):</label>
+                    <input @bind="config.TiempoCorteMax" class="form-control" type="number" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Tiempo Llegadas:</label>
+                    <input @bind="config.TLlegadas" class="form-control" type="number" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Total Clientes:</label>
+                    <input @bind="config.TotClientes" class="form-control" type="number" />
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <button class="btn btn-success me-2" @onclick="IniciarSimulacion" disabled="@estaCorriendo" style="width: 150px;">
+                        @if (estaCorriendo)
+                        {
+                            <span><i class="fas fa-sync fa-spin"></i> Ejecutando...</span>
+                        }
+                        else
+                        {
+                            <span><i class="fas fa-play"></i> Iniciar Simulación</span>
+                        }
+                    </button>
+                    <button class="btn btn-warning" @onclick="LimpiarSimulacion" disabled="@estaCorriendo" style="width: 150px;">
+                        <i class="fas fa-broom"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    @if (resultado != null && !estaCorriendo)
+    {
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Resultados de la Simulación</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card text-white bg-success mb-3">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Longitud Promedio Cola</h6>
+                                <p class="card-text h4">@(resultado.Indicadores.LongitudPromedioCola.ToString("F2"))</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-warning mb-3">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Tiempo Espera Promedio</h6>
+                                <p class="card-text h4">@(resultado.Indicadores.TiempoEsperaPromedio.ToString("F2")) min</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-white bg-primary mb-3">
+                            <div class="card-body text-center">
+                                <h6 class="card-title">Uso Promedio Instalación</h6>
+                                <p class="card-text h4">@(resultado.Indicadores.UsoPromedioInstalacion.ToString("F2"))</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Eventos -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Detalle de Eventos (@resultado.Eventos.Count eventos)</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark sticky-top">
+                            <tr>
+                                <th>#</th>
+                                <th>Cliente</th>
+                                <th>Evento</th>
+                                <th>Tiempo (min)</th>
+                                <th>Tiempo Espera (min)</th>
+                                <th>Tiempo Corte (min)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var evento in resultado.Eventos.OrderBy(e => e.Tiempo))
+                            {
+                                <tr>
+                                    <td>@(resultado.Eventos.IndexOf(evento) + 1)</td>
+                                    <td><strong>@evento.Cliente</strong></td>
+                                    <td>
+                                        <span class="badge @GetEventoBadgeClass(evento.TipoEvento)">
+                                            @evento.TipoEvento
+                                        </span>
+                                    </td>
+                                    <td>@evento.Tiempo.ToString("F2")</td>
+                                    <td>@(evento.TiempoEspera?.ToString("F2") ?? "-")</td>
+                                    <td>@(evento.TiempoCorte?.ToString("F2") ?? "-")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private Configuracion config = new();
+    private ResultadoSimulacion? resultado;
+    private bool estaCorriendo = false;
+
+    protected override void OnInitialized()
+    {
+        ConfigurarValoresPorDefecto();
+    }
+
+    private void ConfigurarValoresPorDefecto()
+    {
+        config.Semilla = 30;
+        config.NumPeluqueros = 1;
+        config.TiempoCorteMin = 15;
+        config.TiempoCorteMax = 30;
+        config.TLlegadas = 20;
+        config.TotClientes = 5;
+    }
+
+    private async Task IniciarSimulacion()
+    {
+        try
+        {
+            estaCorriendo = true;
+            resultado = null;
+            StateHasChanged();
+
+            // Ejecutar simulación a través del servicio
+            resultado = await SimulacionService.EjecutarSimulacionAsync(config);
+
+            estaCorriendo = false;
+            StateHasChanged();
+
+            await JSRuntime.InvokeVoidAsync("console.log", "Simulación completada exitosamente");
+        }
+        catch (Exception ex)
+        {
+            estaCorriendo = false;
+            await JSRuntime.InvokeVoidAsync("console.error", $"Error: {ex.Message}");
+            StateHasChanged();
+        }
+    }
+
+    private void LimpiarSimulacion()
+    {
+        resultado = null;
+        ConfigurarValoresPorDefecto();
+        StateHasChanged();
+    }
+
+    private string GetEventoBadgeClass(string tipoEvento)
+    {
+        return tipoEvento switch
+        {
+            "Llegada" => "bg-primary",
+            "Inicio Corte" => "bg-success",
+            "Fin Corte" => "bg-warning text-dark",
+            _ => "bg-secondary"
+        };
+    }
+}
