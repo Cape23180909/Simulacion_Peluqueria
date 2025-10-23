@@ -9,7 +9,7 @@
 <div class="container mt-4">
     <h1 class="text-center mb-4">Simulación de Peluquería</h1>
 
-    <!-- Panel de Configuración -->
+   @*  Campos para Iniciar Simulacion *@
     <div class="card mb-4">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">Configuración de la Simulación</h5>
@@ -61,7 +61,7 @@
         </div>
     </div>
 
-    <!-- Resultados -->
+   @*Resultados*@
     @if (resultado != null && !estaCorriendo)
     {
         <div class="card mb-4">
@@ -97,8 +97,7 @@
                 </div>
             </div>
         </div>
-
-        <!-- Tabla de Eventos -->
+        @*Eventos*@
         <div class="card">
             <div class="card-header bg-secondary text-white">
                 <h5 class="mb-0">Detalle de Eventos (@resultado.Eventos.Count eventos)</h5>
@@ -123,7 +122,7 @@
                                     <td>@(resultado.Eventos.IndexOf(evento) + 1)</td>
                                     <td><strong>@evento.Cliente</strong></td>
                                     <td>
-                                        <span class="badge @GetEventoBadgeClass(evento.TipoEvento)">
+                                        <span class="badge @ConseguirEvento(evento.TipoEvento)">
                                             @evento.TipoEvento
                                         </span>
                                     </td>
@@ -150,7 +149,7 @@
         ConfigurarValoresPorDefecto();
     }
 
-    private void ConfigurarValoresPorDefecto()
+    private async Task ConfigurarValoresPorDefecto()
     {
         config.Semilla = 30;
         config.NumPeluqueros = 1;
@@ -167,8 +166,6 @@
             estaCorriendo = true;
             resultado = null;
             StateHasChanged();
-
-            // Ejecutar simulación a través del servicio
             resultado = await SimulacionService.EjecutarSimulacionAsync(config);
 
             estaCorriendo = false;
@@ -191,7 +188,7 @@
         StateHasChanged();
     }
 
-    private string GetEventoBadgeClass(string tipoEvento)
+    private string ConseguirEvento(string tipoEvento)
     {
         return tipoEvento switch
         {
